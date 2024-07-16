@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract FundManagement {
+    struct Fund {
+        address manager;
+        uint256 amount;
+        bool invested;
+    }
+
+    mapping(address => Fund) public funds;
+
+    function createFund() public payable {
+        require(funds[msg.sender].amount == 0, "Fund already exists");
+        funds[msg.sender] = Fund(msg.sender, msg.value, false);
+    }
+
+    function investFund(address _manager, uint256 _amount) public {
+        Fund storage fund = funds[_manager];
+        require(fund.amount >= _amount, "Insufficient fund amount");
+        fund.amount -= _amount;
+        fund.invested = true;
+    }
+
+    function withdrawFund() public {
+        Fund storage fund = funds[msg.sender];
+        require(fund.amount > 0, "No funds available");
+        require(!fund.invested, "Funds already invested");
+        uint256 amount = fund.amount;
+        fund.amount = 0;
+        payable(msg.sender).transfer(amount);
+    }
+}
